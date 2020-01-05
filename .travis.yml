@@ -1,0 +1,40 @@
+# Do not choose a language; we provide our own build tools.
+language: generic
+
+# Caching so the next build will be fast too.
+cache:
+  directories:
+  - $HOME/.stack
+addons:
+  apt:
+    packages:
+      - libgmp-dev
+
+branches:
+  only:
+    - source
+env:
+  global:
+    - secure: "Cy4BcIu5Q/AwKrcB3ziO3pF7tHlo2ebJruQnKvXmO6Hibxq1i8N9k1kzV4iM58yK0qj0v3+jn8l0ig3ekqTiCm10sOo+bl7MxCloAhabzjgbQodKJ9U6mc64M9nCOD6p82Ru0M8qmXYb/rohANpGRiC3ruTl4EUrQ68TTSJtBdfwym2NY07lQ1xbgzsqI4BnvZBBx1CfeNke+R6ghHBveAOXVh2eNcr4TKQXIzwmRhfvaqt2UGfeV2cbXweV6Hi6hTTDmqGK2/8wjmy57hxdLvzAxEFykyqjlTyuagRzUNSHzkCgInBeKl3y//U8k8PlvqKIefdrvBrYLiiFMdTOJNmm4IDKX79P6oQhkLAfUOVJnJsGwkZdL549QLkyhPyBjkFsE/L5NWXT5q7cg0c374ezMooRTiypstGKzs9Wjq3jeSubS6Pabo5s8FQYrbsWPV3jMcCnnSyT7asHC333mf+dUprP3E/q9vuJ5t5Sh1B1H+kAwn9SuKW5PZjoLg2nDSNsHkF5T+fViJjmq2SBa7e6pRWGobiHJ6rtfeYQ99OgsMD07t6fIcen3sCO9ZlA5Q+Im48YciioQzQ9aYxsknurNHRjD6Cu+Pz+HdDbsBIAoAvO8ZV4khoQzWxvBedPu1jOvckHSM4lKQLU9EsypLXpQSXPzsKY7G9dTyRq4qE="
+before_install:
+# Download and unpack the stack executable
+- mkdir -p ~/.local/bin
+- export PATH=$HOME/.local/bin:$PATH
+- travis_retry curl -L https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
+install:
+  - stack --no-terminal --install-ghc build
+before_script:
+  - cd _site
+  - git checkout master
+  - git pull origin master
+  - cd ..
+script: stack exec --no-terminal site build
+after_script:
+  - cd _site
+  - git status
+  - git add --all
+  - git config --global user.email "mcallisterjp@gmail.com"
+  - git config --global user.name "Travis"
+  - git commit -m "snapshot $(date '+%m/%d/%y %H:%M')"
+  - git push "$REPO_URL" master | grep -v http
+  - cd ..
