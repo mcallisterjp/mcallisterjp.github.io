@@ -1,0 +1,4 @@
+_cache/
+.stack-work/
+stack.yaml.lock
+*~
